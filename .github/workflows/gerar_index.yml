@@ -1,0 +1,23 @@
+name: Gerar index.html
+
+on:
+  push:
+    paths:
+      - '*.csv'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rodar gerar_dados.py
+        run: python gerar_dados.py
+
+      - name: Commit e push do index.html
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Auto: index.html atualizado [skip ci]"
+          git push
