@@ -34,18 +34,14 @@ def processar_csv(path):
 def gerar_html(jogos, template_path):
     with open(template_path, "r", encoding="utf-8") as f:
         html = f.read()
-
     html = html.replace(
-        "mercado:      gv(r,m,'Met_sugerido','Met sugerido','Mercado','mercado'),",
-        "mercado:      gv(r,m,'Met_sugerido','Met_final','Met sugerido','Mercado','mercado'),"
+        "mercado: gv(r,m,'Met_sugerido','Met sugerido','Mercado','mercado'),",
+        "mercado: gv(r,m,'Met_sugerido','Met_final','Met sugerido','Mercado','mercado'),"
     )
-    # Remove bloco de dados anterior se já existir
     html = re.sub(r'\n<script>\n/\* RODADA \d+ \*/.*?</script>', '', html, flags=re.DOTALL)
-
     ts = datetime.now().strftime("%Y%m%d%H%M%S")
     jogos_json = json.dumps(jogos, ensure_ascii=False)
-
-    inject = f"""
+    injetar = f"""
 <script>
 /* RODADA {ts} */
 (function(){{
@@ -70,24 +66,26 @@ def gerar_html(jogos, template_path):
     :tentarCarregar();
 }})();
 </script></body></html>"""
-
     html = html.rstrip()
     for tag in ["</html>", "</body>"]:
-        if html.endswith(tag): html = html[:-len(tag)].rstrip()
-    return html + inject
+        if html.endswith(tag):
+            html = html[:-len(tag)].rstrip()
+    return html + injetar
 
 def main():
     csv_path = encontrar_csv(sys.argv[1] if len(sys.argv) > 1 else None)
-    if not csv_path: print("[✗] CSV não encontrado."); sys.exit(1)
+    if not csv_path:
+        print("[X] CSV nao encontrado."); sys.exit(1)
     template = encontrar_template()
-    if not template: print("[✗] Template HTML não encontrado."); sys.exit(1)
-    print(f"[✓] CSV: {csv_path}  |  Template: {template}")
+    if not template:
+        print("[X] Template HTML nao encontrado."); sys.exit(1)
+    print(f"[OK] CSV: {csv_path} | Template: {template}")
     jogos = processar_csv(csv_path)
-    print(f"[✓] {len(jogos)} jogos processados")
+    print(f"[OK] {len(jogos)} jogos processados")
     html = gerar_html(jogos, template)
     with open(SAIDA_HTML, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"[✓] {SAIDA_HTML} gerado!")
+    print(f"[OK] {SAIDA_HTML} gerado!")
 
 if __name__ == "__main__":
     main()
